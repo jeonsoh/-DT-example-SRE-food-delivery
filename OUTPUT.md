@@ -66,9 +66,9 @@
     
 # Table of contents
 
-- [예제 - 음식배달]
-  - [설계~구현]
-    - [이벤트 스토밍] 
+- [예제 - 음식배달](#---)
+  - [설계~구현] 
+    - [이벤트 스토밍](#이벤트스토밍)
     - [MSA Architecture]
   - [Cloud Services Provisioning]
     - Control Tower 환경설정
