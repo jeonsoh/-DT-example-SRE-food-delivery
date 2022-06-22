@@ -68,7 +68,7 @@
 
 - [예제 - 음식배달]
   - [설계~구현]
-    - [이벤트 스토밍]
+    - [이벤트 스토밍] 
     - [MSA Architecture]
   - [Cloud Services Provisioning]
     - Control Tower 환경설정
@@ -84,3 +84,10 @@
     - [마이크로서비스 통합 Logging]
     - [이벤트 스트리밍 플랫폼 Monitoring]
   - [신규 개발 조직의 추가]
+
+
+# 이벤트 스토밍
+![image](https://user-images.githubusercontent.com/14817202/174930344-c21742eb-d812-42c4-8622-971163c3f47c.png)
+
+# MSA Architecture
+
