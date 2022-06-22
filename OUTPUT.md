@@ -1,3 +1,6 @@
+## Cloud Transformation / 10083 전소향
+## User23 
+## eu-west-3 (파리)
 
 # Site Reliability Engineering(SRE) PreLab 예제 - 음식배달
 
@@ -67,14 +70,13 @@
 # Table of contents
 
 - [예제 - 음식배달](#---)
-  - [설계~구현] 
-    - [이벤트 스토밍](#이벤트스토밍)
+  - [설계~구현](#---)
+    - [이벤트 스토밍](#이벤트-스토밍)
     - [MSA Architecture](#MSA-Architecture)
-  - [Cloud Services Provisioning]
-    - Control Tower 환경설정
-    - 쿠버네티스 클러스터 구성
+  - [Cloud Services Provisioning](#---)
+    - [EKS 클러스터 구성](#EKS)
   - [배포:]
-    - [파이프라인 생성]
+    - [파이프라인 생성](#파이프라인-생성)
   - [운영]
     - [동기식 호출/서킷 브레이킹/장애격리]
     - [SLA 준수 - 오토스케일 아웃]
@@ -90,4 +92,43 @@
 ![image](https://user-images.githubusercontent.com/14817202/174930344-c21742eb-d812-42c4-8622-971163c3f47c.png)
 
 # **MSA Architecture**
+
+# EKS
+1. IAM 보안 자격 증명 설정 
+```
+aws configure
+AWS Access Key ID [None]:
+AWS Secret Access Key [None]:
+Default region name [None]: 
+Default output format [None]: 
+```
+`aws iam list-account-aliases`
+
+
+2. EKS cluster create 
+```
+eksctl create cluster --name user23-eks --version 1.21 --nodegroup-name standard-workers --node-type t3.medium --nodes 4 --nodes-min 1 --nodes-max 4
+```
+
+3. ECR create 
+```
+aws ecr create-repository \
+    --repository-name user23-ecr \
+    --image-scanning-configuration scanOnPush=true \
+    --region eu-west-3
+```
+
+4. docker login to ECR 
+`docker login --username AWS -p $(aws ecr get-login-password --region eu-west-3) 271153858532.dkr.ecr.eu-west-3.amazonaws.com/`
+
+5. Metric-Server install 
+`kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml`
+
+# 파이프라인 생성 
+- gateway
+- order
+- product
+- delivery
+
+![image](https://user-images.githubusercontent.com/14817202/174956261-7c0ad40e-0c33-4841-8274-832d81a731ed.png)
 
