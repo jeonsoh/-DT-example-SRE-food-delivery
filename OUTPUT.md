@@ -1,6 +1,6 @@
 ## Cloud Transformation / 10083 전소향
-## User23 
-## eu-west-3 (파리)
+User23 
+eu-west-3 (파리)
 
 # Site Reliability Engineering(SRE) PreLab 예제 - 음식배달
 
@@ -75,8 +75,9 @@
     - [MSA Architecture](#MSA-Architecture)
   - [Cloud Services Provisioning](#---)
     - [EKS 클러스터 구성](#EKS)
-  - [배포:]
+  - [배포]
     - [파이프라인 생성](#파이프라인-생성)
+    - [분산 메시지 플랫폼 구성](#kafka)
   - [운영]
     - [동기식 호출/서킷 브레이킹/장애격리]
     - [SLA 준수 - 오토스케일 아웃]
@@ -102,7 +103,6 @@ AWS Secret Access Key [None]:
 Default region name [None]: 
 Default output format [None]: 
 ```
-`aws iam list-account-aliases`
 
 
 2. EKS cluster create 
@@ -119,10 +119,14 @@ aws ecr create-repository \
 ```
 
 4. docker login to ECR 
-`docker login --username AWS -p $(aws ecr get-login-password --region eu-west-3) 271153858532.dkr.ecr.eu-west-3.amazonaws.com/`
+```
+docker login --username AWS -p $(aws ecr get-login-password --region eu-west-3) 271153858532.dkr.ecr.eu-west-3.amazonaws.com/
+```
 
 5. Metric-Server install 
-`kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml`
+```
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+```
 
 # 파이프라인 생성 
 - gateway
@@ -131,4 +135,50 @@ aws ecr create-repository \
 - delivery
 
 ![image](https://user-images.githubusercontent.com/14817202/174956261-7c0ad40e-0c33-4841-8274-832d81a731ed.png)
+
+
+# Kafka
+```
+helm repo add incubator https://charts.helm.sh/incubator
+helm repo update
+kubectl create namespace kafka
+helm install my-kafka --namespace kafka incubator/kafka
+
+kubectl get svc my-kafka -n kafka
+```
+
+![image](https://user-images.githubusercontent.com/14817202/174965058-90a52bda-0fd0-4773-bbb9-91263a349cbc.png)
+
+# Test Commands
+```
+kubectl port-forward deploy/user23-gateway 8080:8080
+kubectl port-forward deploy/user23-products 8083:8080
+kubectl port-forward deploy/user23-order 8081:8080
+kubectl port-forward deploy/user23-delivery 8082:8080
+
+#kafka monitoring
+kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic mall --from-beginning
+```
+- 상품 등록 
+```
+http POST http://localhost:8083/inventories productId=1001 productName=TV stock=100
+```
+![image](https://user-images.githubusercontent.com/14817202/174968646-a7767300-7ac7-49d7-8c46-1c288adf35fa.png)
+
+- 주문 생성 
+```
+http POST http://localhost:8081/orders productId=1001 productName=TV qty=5 customerId=100
+```
+![image](https://user-images.githubusercontent.com/14817202/174968864-99d15c43-0a6d-4bf8-9476-f804e25d1b10.png)
+
+![image](https://user-images.githubusercontent.com/14817202/174969126-c7c5c3d5-c0d5-4add-959a-af016b50d0e8.png)
+
+
+- 주문 취소 
+```
+http DELETE http://localhost:8081/orders/1
+```
+![image](https://user-images.githubusercontent.com/14817202/174969533-f58c20e1-60e8-42dd-94ff-8a4024198e10.png)
+
+![image](https://user-images.githubusercontent.com/14817202/174969610-ff851577-5ec7-49ee-8516-022e9b163782.png)
 
