@@ -32,9 +32,9 @@
     - 제출 시, 반드시 소속과 이름을 기재
  
 - **체크포인트** 
-  - Domain 주제영역 및 시나리오 이해
-  - 이벤트스토밍 모델 이해
-  - 폴리글랏 프로그래밍 코드(동기호출, 비동기 호출) 이해 
+  - ~Domain 주제영역 및 시나리오 이해~
+  - ~이벤트스토밍 모델 이해~
+  - ~폴리글랏 프로그래밍 코드(동기호출, 비동기 호출) 이해~ 
   - MSA 아키텍처 구성
   - Cloud Platform 프로비저닝 
   - DevOps Toolchain 구축 
@@ -82,8 +82,8 @@
     - [SLA 준수 - 오토스케일 아웃](#Auto-ScaleOut)
     - [SLA 준수 - 무정지 재배포](#무정지-재배포)
     - [Service Mesh 인프라구축](#Service-Mesh)
-    - [마이크로서비스 통합 Monitoring]
-    - [마이크로서비스 통합 Logging]
+    - [마이크로서비스 통합 Monitoring](#MSA-통합-Monitoring)
+    - [마이크로서비스 통합 Logging](#MSA-통합-Logging)
     - [이벤트 스트리밍 플랫폼 Monitoring]
   
 
@@ -340,4 +340,18 @@ http://a97efa8ce5ea64d139a5785fe55d5b9a-1386978181.eu-west-3.elb.amazonaws.com
 ```
 kubectl label namespace default istio-injection=enabled
 ```
+default ns에 파드 재배포하여 적용 
+
+![image](https://user-images.githubusercontent.com/14817202/175248468-87e762ca-8aad-413f-a0cf-1c47ba12c00c.png)
+
+
+# MSA 통합 Monitoring 
+## Prometheus, Grafana
+
+# MSA 통합 Logging
+## ELK
+
+# 이벤트 스트리밍 플랫폼 Monitoring 
+## Kafka
+
 
