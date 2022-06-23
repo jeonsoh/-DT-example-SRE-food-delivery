@@ -1,6 +1,6 @@
 ## Cloud Transformation / 10083 전소향
-User23 
-eu-west-3 (파리)
+### User23 
+### eu-west-3 (파리)
 
 # Site Reliability Engineering(SRE) PreLab 예제 - 음식배달
 
@@ -289,6 +289,8 @@ siege -c30 -t30S -r10 --content-type "application/json" 'http://user23-order:808
 6. scale out 확인
 ![image](https://user-images.githubusercontent.com/14817202/175210403-520144c8-1537-4c31-aea1-f811c126bac0.png)
 
+7. gateway, delivery, product 서비스도 동일하게 hpa 적용 
+
 
 # 무정지 재배포
 1. 워크로드 모니터링 
@@ -303,7 +305,39 @@ siege -c1 -t300S -v --content-type "application/json" 'http://a80fef8e98315402cb
 ```
 ![image](https://user-images.githubusercontent.com/14817202/175222985-079af3d1-c4ef-4c16-9d9d-aa8f35248cd3.png)
 
+4. delivery, gateway, product 서비스도 마찬가지 
+
+
 # Service Mesh 
+1. Istio Install
+```
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.11.3 TARGET_ARCH=x86_64 sh -
+cd istio-1.11.3
+export PATH=$PWD/bin:$PATH
 
+istioctl install --set profile=demo --set hub=gcr.io/istio-release
 
+kubectl apply -f samples/addons
+```
+
+2. monitoring server - kiali service type change 
+```
+kubectl edit svc kiali -n istio-system
+:%s/ClusterIP/LoadBalancer/g
+:wq!
+```
+http://a03e02f0c89de4c858b93d42bb503dcd-1749593214.eu-west-3.elb.amazonaws.com:20001
+
+3. tracing server - jaeger service type change 
+```
+kubectl edit svc tracing -n istio-system
+:%s/ClusterIP/LoadBalancer/g
+:wq!
+```
+http://a97efa8ce5ea64d139a5785fe55d5b9a-1386978181.eu-west-3.elb.amazonaws.com
+
+4. default namespace에 envoy sidecar 주입을 위해 라벨링 설정 
+```
+kubectl label namespace default istio-injection=enabled
+```
 
