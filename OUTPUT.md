@@ -79,8 +79,7 @@ eu-west-3 (파리)
     - [파이프라인 생성](#파이프라인-생성)
     - [분산 메시지 플랫폼 구성](#kafka)
   - [운영]
-    - [동기식 호출/서킷 브레이킹/장애격리]
-    - [SLA 준수 - 오토스케일 아웃]
+    - [SLA 준수 - 오토스케일 아웃](#Auto-ScaleOut)
     - [SLA 준수 - 무정지 재배포]
     - [Service Mesh 인프라구축]
     - [마이크로서비스 통합 Monitoring]
@@ -147,38 +146,83 @@ helm install my-kafka --namespace kafka incubator/kafka
 kubectl get svc my-kafka -n kafka
 ```
 
-![image](https://user-images.githubusercontent.com/14817202/174965058-90a52bda-0fd0-4773-bbb9-91263a349cbc.png)
+## gateway change to LB type
+gateway buildspec-kubectl.yml에 service type:LoadBalancer 를 추가해준다. 
+```
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: $_PROJECT_NAME
+    labels:
+      app: $_PROJECT_NAME
+  spec:
+    ports:
+      - port: 8080
+        targetPort: 8080
+    selector:
+      app: $_PROJECT_NAME
+    type: LoadBalancer  
+```
+
+gateway application.yml에 svc 이름 변경 
+```
+spring:
+  profiles: docker
+  cloud:
+    gateway:
+      routes:
+        - id: order
+          uri: http://user23-order:8080
+          predicates:
+            - Path=/orders/** 
+        - id: delivery
+          uri: http://user23-delivery:8080
+          predicates:
+            - Path=/deliveries/** 
+        - id: product
+          uri: http://user23-products:8080
+          predicates:
+            - Path=/inventories/** 
+        - id: frontend
+          uri: http://frontend:8080
+          predicates:
+            - Path=/**
+```
+
+![image](https://user-images.githubusercontent.com/14817202/175184331-8e3f4f15-c7e4-4428-9a59-273c812dd135.png)
+
 
 # Test Commands
 ```
-kubectl port-forward deploy/user23-gateway 8080:8080
-kubectl port-forward deploy/user23-products 8083:8080
-kubectl port-forward deploy/user23-order 8081:8080
-kubectl port-forward deploy/user23-delivery 8082:8080
-
 #kafka monitoring
 kubectl -n kafka exec -ti my-kafka-0 -- /usr/bin/kafka-console-consumer --bootstrap-server my-kafka:9092 --topic mall --from-beginning
 ```
 - 상품 등록 
 ```
-http POST http://localhost:8083/inventories productId=1001 productName=TV stock=100
+http POST http://a80fef8e98315402cba6962c3c1cb624-1068765691.eu-west-3.elb.amazonaws.com:8080/inventories productId=1001 productName=TV stock=100
 ```
-![image](https://user-images.githubusercontent.com/14817202/174968646-a7767300-7ac7-49d7-8c46-1c288adf35fa.png)
+![image](https://user-images.githubusercontent.com/14817202/175190625-0399f616-c2a6-4cab-b3b4-50e3dd1054a2.png)
 
 - 주문 생성 
 ```
-http POST http://localhost:8081/orders productId=1001 productName=TV qty=5 customerId=100
-```
-![image](https://user-images.githubusercontent.com/14817202/174968864-99d15c43-0a6d-4bf8-9476-f804e25d1b10.png)
+http POST http://a80fef8e98315402cba6962c3c1cb624-1068765691.eu-west-3.elb.amazonaws.com:8080/orders productId=1001 productName=TV qty=5 customerId=100
 
-![image](https://user-images.githubusercontent.com/14817202/174969126-c7c5c3d5-c0d5-4add-959a-af016b50d0e8.png)
+```
+![image](https://user-images.githubusercontent.com/14817202/175190737-930515fd-b722-4b2d-94f0-808d061478d2.png)
+
+![image](https://user-images.githubusercontent.com/14817202/175190895-fe5a130f-4d81-49c4-b596-749c062e19ea.png)
 
 
 - 주문 취소 
 ```
-http DELETE http://localhost:8081/orders/1
+http DELETE http://a80fef8e98315402cba6962c3c1cb624-1068765691.eu-west-3.elb.amazonaws.com:8080/orders/4
 ```
-![image](https://user-images.githubusercontent.com/14817202/174969533-f58c20e1-60e8-42dd-94ff-8a4024198e10.png)
+![image](https://user-images.githubusercontent.com/14817202/175190968-5cd28c50-b04d-4d46-aafc-6ae21ccdc33b.png)
 
-![image](https://user-images.githubusercontent.com/14817202/174969610-ff851577-5ec7-49ee-8516-022e9b163782.png)
+![image](https://user-images.githubusercontent.com/14817202/175191003-0916af01-a5b0-49e0-8f23-1e34946258c8.png)
+
+
+# Auto ScaleOut
+
+
 
