@@ -80,12 +80,12 @@ eu-west-3 (파리)
     - [분산 메시지 플랫폼 구성](#kafka)
   - [운영]
     - [SLA 준수 - 오토스케일 아웃](#Auto-ScaleOut)
-    - [SLA 준수 - 무정지 재배포]
-    - [Service Mesh 인프라구축]
+    - [SLA 준수 - 무정지 재배포](#무정지-재배포)
+    - [Service Mesh 인프라구축](#Service-Mesh)
     - [마이크로서비스 통합 Monitoring]
     - [마이크로서비스 통합 Logging]
     - [이벤트 스트리밍 플랫폼 Monitoring]
-  - [신규 개발 조직의 추가]
+  
 
 
 # **이벤트 스토밍**
@@ -223,6 +223,87 @@ http DELETE http://a80fef8e98315402cba6962c3c1cb624-1068765691.eu-west-3.elb.ama
 
 
 # Auto ScaleOut
+
+1. order 서비스의 buildspec-kubectl.yml 파일 수정 
+```
+  readinessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 10
+    timeoutSeconds: 2
+    periodSeconds: 5
+    failureThreshold: 10
+  livenessProbe:
+    httpGet:
+      path: /actuator/health
+      port: 8080
+    initialDelaySeconds: 120
+    timeoutSeconds: 2
+    periodSeconds: 5
+    failureThreshold: 5
+  resources:
+    limits:
+      cpu: 500m
+    requests:
+      cpu: 200m
+```
+
+2. Load Generator(siege) 생성 
+```
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: siege
+spec:
+  containers:
+  - name: siege
+    image: apexacme/siege-nginx
+EOF
+```
+
+3. siege 작동 확인
+```
+kubectl exec -it siege -- /bin/bash
+siege -c1 -t2S -v http://user23-order:8080/orders
+exit
+```
+![image](https://user-images.githubusercontent.com/14817202/175209455-ea3ebfdc-b312-4520-b0b9-5ec86f7d6d1c.png)
+
+4. HPA 설정 
+```
+kubectl autoscale deploy user23-order --min=1 --max=10 --cpu-percent=15
+```
+
+5. order서비스에 워크로드 30초 발생 
+- 동시 접속자 수 30
+- 반복횟수 10 
+- 30초동안 
+```
+kubectl exec -it siege -- /bin/bash
+siege -c30 -t30S -r10 --content-type "application/json" 'http://user23-order:8080/orders POST {"productId": "1001", "productName": "TV", "qty": "5", "customerId": "100"}'
+```
+![image](https://user-images.githubusercontent.com/14817202/175210231-c9ee2aff-c4b4-4880-9b40-f3ad99c5d436.png)
+
+6. scale out 확인
+![image](https://user-images.githubusercontent.com/14817202/175210403-520144c8-1537-4c31-aea1-f811c126bac0.png)
+
+
+# 무정지 재배포
+1. 워크로드 모니터링 
+```
+siege -c100 -t120S -r10 --content-type "application/json" 'http://a80fef8e98315402cba6962c3c1cb624-1068765691.eu-west-3.elb.amazonaws.com:8080/orders POST {"item": "chicken"}'
+```
+![image](https://user-images.githubusercontent.com/14817202/175213588-3ef5970b-29c5-4992-8b42-e9cc2ebdd1f9.png)
+
+2. siege 부하가 걸린 상태에서 order서비스를 재배포, Readiness Probe설정으로 인해 Availability 보장 
+```
+siege -c1 -t300S -v --content-type "application/json" 'http://a80fef8e98315402cba6962c3c1cb624-1068765691.eu-west-3.elb.amazonaws.com:8080/orders POST {"item": "chicken"}'
+```
+![image](https://user-images.githubusercontent.com/14817202/175222985-079af3d1-c4ef-4c16-9d9d-aa8f35248cd3.png)
+
+# Service Mesh 
 
 
 
