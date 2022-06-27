@@ -347,9 +347,69 @@ default ns에 파드 재배포하여 적용
 
 # MSA 통합 Monitoring 
 ## Prometheus, Grafana
+1. install prometheus, crd, operator and create monitoring ns 
+```
+git clone https://github.com/prometheus-operator/kube-prometheus.git
+cd kube-prometheus
+kubectl create -f manifests/setup
+kubectl create -f manifests/
+
+```
+![image](https://user-images.githubusercontent.com/14817202/175870097-4d88e4a6-72c4-4dcf-a38f-ea0e231a2b2f.png)
+
+2. grafana를 LB type으로 변경 
+http://a69d00a6448ee421facc6dc313bbf170-1499389387.eu-west-3.elb.amazonaws.com:3000
+
+![image](https://user-images.githubusercontent.com/14817202/175871469-ef0503ee-c0d5-4240-ae54-8c187a0853b1.png)
+
 
 # MSA 통합 Logging
 ## ELK
+1. install ElasticSearch and Kibana
+```
+helm repo add elastic https://helm.elastic.co
+helm repo update
+kubectl create namespace elastic
+helm install elasticsearch elastic/elasticsearch -n elastic
+helm install kibana elastic/kibana -n elastic
+```
+![image](https://user-images.githubusercontent.com/14817202/175902040-a7695f56-d8a0-4a4d-a02b-115f893a94e6.png)
+
+2. install sa, clusterrole, rolebinding, fluent-bit configmap 
+```
+kubectl apply -f https://raw.githubusercontent.com/event-storming/elasticsearch/main/service-account.yaml
+kubectl apply -f https://raw.githubusercontent.com/event-storming/elasticsearch/main/role.yaml
+kubectl apply -f https://raw.githubusercontent.com/event-storming/elasticsearch/main/role-binding.yaml
+kubectl apply -f https://raw.githubusercontent.com/event-storming/elasticsearch/main/configmap.yaml
+kubectl apply -f https://raw.githubusercontent.com/event-storming/elasticsearch/main/daemonset.yaml
+```
+
+3. fluent-bit configmap shop->default ns로 수정 
+```
+input-kubernetes.conf: |
+    [INPUT]
+        Name              tail
+        Path              /var/log/containers/*_kube-system_*.log
+        # Path에서 수집되는 데이터 태깅
+        Tag               kube.*
+        Read_from_head    true
+        Parser            cri
+    [INPUT]
+        Name              tail
+        Tag               default.*
+        Path              /var/log/containers/*_default_*.log
+        Multiline         on
+        Read_from_head    true
+        Parser_Firstline  multiline_pattern
+
+```
+
+4. kibana를 LB타입으로 변경
+http://ab34b3b739d954bdb8780cbfdf5a3b74-996966933.eu-west-3.elb.amazonaws.com:5601
+
+5. index pattern 설정 후 조회 
+![image](https://user-images.githubusercontent.com/14817202/175914322-494dfa7c-8d9a-4b01-80ac-1cbdc129a00c.png)
+
 
 # 이벤트 스트리밍 플랫폼 Monitoring 
 ## Kafka
