@@ -84,7 +84,7 @@
     - [Service Mesh 인프라구축](#Service-Mesh)
     - [마이크로서비스 통합 Monitoring](#MSA-통합-Monitoring)
     - [마이크로서비스 통합 Logging](#MSA-통합-Logging)
-    - [이벤트 스트리밍 플랫폼 Monitoring]
+    - [이벤트 스트리밍 플랫폼 Monitoring](#Kafka-Monitoring)
   
 
 
@@ -411,7 +411,7 @@ http://ab34b3b739d954bdb8780cbfdf5a3b74-996966933.eu-west-3.elb.amazonaws.com:56
 ![image](https://user-images.githubusercontent.com/14817202/175914322-494dfa7c-8d9a-4b01-80ac-1cbdc129a00c.png)
 
 
-# 이벤트 스트리밍 플랫폼 Monitoring 
+# Kafka Monitoring
 ## Kafka
 1. install kafka-ui
 ```
