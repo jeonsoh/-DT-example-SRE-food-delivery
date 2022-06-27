@@ -413,5 +413,21 @@ http://ab34b3b739d954bdb8780cbfdf5a3b74-996966933.eu-west-3.elb.amazonaws.com:56
 
 # 이벤트 스트리밍 플랫폼 Monitoring 
 ## Kafka
+1. install kafka-ui
+```
+helm repo add kafka-ui https://provectus.github.io/kafka-ui
+helm repo update
+helm install kafka-ui kafka-ui/kafka-ui  --namespace=kafka \
+--set envs.config.KAFKA_CLUSTERS_0_NAME=shop-Kafka \
+--set envs.config.KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=my-kafka:9092 \
+--set envs.config.KAFKA_CLUSTERS_0_ZOOKEEPER=my-kafka-zookeeper:2181
+```
+![image](https://user-images.githubusercontent.com/14817202/175915540-d94f168a-8e9d-42f2-a7bb-a77501ba7d5a.png)
+
+2. kafka-ui svc를 LB타입으로 변경, port 8081로 변경  
+http://acddcf13727214accbe3e69c15884d74-1218890953.eu-west-3.elb.amazonaws.com:8081
+
+![image](https://user-images.githubusercontent.com/14817202/175916600-9be459ec-0135-4876-a796-ce7e4c432d96.png)
+
 
 
