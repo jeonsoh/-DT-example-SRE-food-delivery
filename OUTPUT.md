@@ -92,6 +92,8 @@
 ![image](https://user-images.githubusercontent.com/14817202/174930344-c21742eb-d812-42c4-8622-971163c3f47c.png)
 
 # **MSA Architecture**
+<img width="881" alt="image" src="https://user-images.githubusercontent.com/14817202/176062572-63285a6a-5b4d-41c3-bc3f-b3db5e49b520.png">
+
 
 # EKS
 1. IAM 보안 자격 증명 설정 
@@ -137,6 +139,7 @@ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/late
 
 
 # Kafka
+install kafka
 ```
 helm repo add incubator https://charts.helm.sh/incubator
 helm repo update
